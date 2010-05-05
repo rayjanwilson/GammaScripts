@@ -1,0 +1,7 @@
+These are wrapper scripts for Gamma, a powerful SAR processing tool. 
+Gamma itself is a commercial tool, so you'll have to refer to their install instructions, etc to get up and running.
+
+This code just calls the functions you would normally type by hand or whatever.
+Therefore this code is open source and GPL, etc.
+
+I tried to add some intelligence so we can automate some commonly performed tasks.
