@@ -14,20 +14,6 @@
 import os, sys, re
 import subprocess
 
-def runCommand(command):
-    #simple use of subprocess to run an os command
-    #you'll need to import:
-    #from subprocess import *
-    try:
-        retcode = subprocess.call(command, shell=True)
-        if retcode < 0:
-            print >>sys.stderr, "Child was terminated by signal", -retcode
-        else:
-            print >>sys.stderr, "Child returned", retcode
-    except OSError, e:
-        print >>sys.stderr, "Execution failed:", e
-
-
 # gamma needs these files to be "local" to the working directory. Don't ask why. 
 # instead of copying the files, we'll just make symbolic links'
 try:
