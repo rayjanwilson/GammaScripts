@@ -1,26 +1,12 @@
 #!/bin/bash
 
-# a port of franz's gamma batch processing on the windows platform to linux
-#if [ -d $1 ]
-#then
-#	results=`ls ${1}`
-#	for i in $results
-#	do
-#		echo $i
-		
-#	done
-#fi
-#exit 0
-
-#function
-
+# gamma needs these files to be "local" to the working directory. Don't ask why. 
+# instead of copying the files, we'll just make symbolic links'
 ln -s ${GAMMA_HOME}/MSP_v11.5/sensors/constant_antenna.gain constant_antenna.gain
-
+ln -s ${GAMMA_HOME}/MSP_v11.5/sensors/palsar_ant_20061024.dat palsar_ant_20061024.dat
 
 n=22202     #orbit number
 fr=6470   #frame number
-
-palsar_ant=${GAMMA_HOME}/MSP_v11.5/sensors/palsar_ant_20061024.dat
 
 echo $n
 echo $fr
@@ -30,7 +16,7 @@ PALSAR_proc LED-ALPSRP${n}${fr}-H1.0__A palsar_${fr}.par p${n}_${fr}.slc.par IMG
 #PALSAR_proc LED-ALPSRP222026460-H1.0__A palsar_6460.par p22202_6460.slc.par IMG-HH-ALPSRP222026460-H1.0__A 22202_6460.raw 0 0
 
 echo "########### running Palsar_antpat... ###########  "
-Palsar_antpat palsar_${fr}.par p${n}_${fr}.slc.par $palsar_ant palsar_antpat_msp.dat - 0 0
+Palsar_antpat palsar_${fr}.par p${n}_${fr}.slc.par palsar_ant_20100430.dat palsar_antpat_msp.dat - 0 0
 #PALSAR_antpat palsar_6460.par p22202_6460.slc.par palsar_ant_20100430.dat palsar_antpat_msp.dat - 0 0
 
 echo "########### running dop_mlcc... ###########  "
