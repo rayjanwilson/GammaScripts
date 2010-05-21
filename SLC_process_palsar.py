@@ -40,7 +40,7 @@ def doit(leader):
     #fr = "6470"     #frame number
 
     print "########### running PALSAR_proc... ###########"
-    CEOS_SAR_leader = "LED-ALPSRP"+n+fr+"-H1.0__A"
+    CEOS_SAR_leader = leader
     SAR_par = "palsar_"+fr+".par"
     PROC_par = "p"+n+"_"+fr+".slc.par"
     CEOS_raw_data = "IMG-HH-ALPSRP"+n+fr+"-H1.0__A"
