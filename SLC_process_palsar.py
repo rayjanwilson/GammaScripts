@@ -20,7 +20,7 @@ def ripInfo(leader):
     frame = p.match(leader).group(2)    
     return orbit, frame
 
-def doit(leader):
+def doit(leader, ceos_raw):
     n, fr = ripInfo(leader)
     print "orbit: ", n
     print "frame: ", fr
@@ -43,7 +43,7 @@ def doit(leader):
     CEOS_SAR_leader = leader
     SAR_par = "palsar_"+fr+".par"
     PROC_par = "p"+n+"_"+fr+".slc.par"
-    CEOS_raw_data = "IMG-HH-ALPSRP"+n+fr+"-H1.0__A"
+    CEOS_raw_data = ceos_raw
     raw_out = n+"_"+fr+".raw"
     TX_POL = "0"
     RX_POL = "0"
@@ -182,8 +182,8 @@ if __name__ == '__main__':
     
     (opts, args) = optp.parse_args()
     
-    if len(args) >= 1:
-        doit(args[0])
+    if len(args) >= 2:
+        doit(args[0], args[1])
         
     else:
         print "fail"
