@@ -178,7 +178,9 @@ def doit(leader, ceos_raw):
 
 if __name__ == '__main__':
     import optparse
-    optp = optparse.OptionParser()
+    usage = "usage: %prog [options] LED-file IMG-file"
+    
+    optp = optparse.OptionParser(usage=usage)
     
     (opts, args) = optp.parse_args()
     
