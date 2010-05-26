@@ -17,13 +17,20 @@ import subprocess
 def ripInfo(leader):
     p = re.compile('LED-\w*(\d\d\d\d\d)(\d\d\d\d)-*')
     orbit = p.match(leader).group(1)
-    frame = p.match(leader).group(2)    
+    frame = p.match(leader).group(2)
     return orbit, frame
+
+def ripPolarization(img):
+    p = re.compile('IMG-(\w\w)-*')
+    polarization = p.match(img).group(1)
+    return polarization
 
 def doit(leader, ceos_raw):
     n, fr = ripInfo(leader)
     print "orbit: ", n
     print "frame: ", fr
+    pol = ripPolarization(ceos_raw)
+    print pol
     # gamma needs these files to be "local" to the working directory. Don't ask why. 
     # instead of copying the files, we'll just make symbolic links'
     try:
@@ -41,10 +48,10 @@ def doit(leader, ceos_raw):
 
     print "########### running PALSAR_proc... ###########"
     CEOS_SAR_leader = leader
-    SAR_par = "palsar_"+fr+".par"
-    PROC_par = "p"+n+"_"+fr+".slc.par"
+    SAR_par = "palsar_"+fr+"_"+pol+".par"
+    PROC_par = "p"+n+"_"+fr+"_"+pol+".slc.par"
     CEOS_raw_data = ceos_raw
-    raw_out = n+"_"+fr+".raw"
+    raw_out = n+"_"+fr+"_"+pol+".raw"
     TX_POL = "0"
     RX_POL = "0"
 
@@ -53,7 +60,7 @@ def doit(leader, ceos_raw):
         subprocess.check_call(command)
     except OSError, e:
         print >>sys.stderr, "Execution failed:", e
-    #runCommand("PALSAR_proc LED-ALPSRP"+n+fr+"-H1.0__A palsar_"+fr+".par p"+n+"_"+fr+".slc.par IMG-HH-ALPSRP"+n+fr+"-H1.0__A "+n+"_"+fr+".raw 0 0")
+    #runCommand("PALSAR_proc LED-ALPSRP"+n+fr+"_"+pol+"-H1.0__A palsar_"+fr+"_"+pol+".par p"+n+"_"+fr+"_"+pol+".slc.par IMG-HH-ALPSRP"+n+fr+"_"+pol+"-H1.0__A "+n+"_"+fr+"_"+pol+".raw 0 0")
     #PALSAR_proc LED-ALPSRP222026460-H1.0__A palsar_6460.par p22202_6460.slc.par IMG-HH-ALPSRP222026460-H1.0__A 22202_6460.raw 0 0
 
     print "########### running PALSAR_antpat... ###########  "
@@ -70,8 +77,8 @@ def doit(leader, ceos_raw):
 
 
     print "########### running dop_mlcc... ###########  "
-    signal_data = n+"_"+fr+".raw"
-    output_plot = n+"_"+fr+".mlcc"
+    signal_data = n+"_"+fr+"_"+pol+".raw"
+    output_plot = n+"_"+fr+"_"+pol+".mlcc"
     loff = "-"
     nlines = "-"
     unknown_extra_1 = "1"
@@ -85,7 +92,7 @@ def doit(leader, ceos_raw):
 
 
     print "########### running doppler... ###########  "
-    doppler = n+"_"+fr+".dop"
+    doppler = n+"_"+fr+"_"+pol+".dop"
     nsub = "-"
     ambig_flag = "-"
     command = ["doppler", SAR_par, PROC_par, signal_data, doppler, loff, nsub, ambig_flag]
@@ -97,7 +104,7 @@ def doit(leader, ceos_raw):
     #doppler palsar_6460.par p22202_6460.slc.par 22202_6460.raw 22202_6460.dop - - -
 
     print "########### running rspec_JERS... ###########  "
-    range_spec = n+"_"+fr+".rspec"
+    range_spec = n+"_"+fr+"_"+pol+".rspec"
     nr_samp = "-"
     nl_spec = "-"
     nr_ext = "-"
@@ -111,7 +118,7 @@ def doit(leader, ceos_raw):
     #rspec_JERS palsar_6460.par p22202_6460.slc.par 22202_6460.raw 22202_6460.rspec - - - - -
 
     print "########### running pre_rc... ###########  "
-    rc_data = n+"_"+fr+".rc"
+    rc_data = n+"_"+fr+"_"+pol+".rc"
     prefilt_dec = "-"
     nl = "-"
     kaiser = "-"
@@ -127,7 +134,7 @@ def doit(leader, ceos_raw):
     #pre_rc palsar_6460.par p22202_6460.slc.par 22202_6460.raw 22202_6460.rc - - - - - - - -
 
     print "########### running autof... ###########  "
-    autofocus = n+"_"+fr+".autof"
+    autofocus = n+"_"+fr+"_"+pol+".autof"
     SNR_min = "2.5"
     prefilter = "-"
     auto_az = "4096" #default = 2048
@@ -143,7 +150,7 @@ def doit(leader, ceos_raw):
     #autof palsar_6460.par p22202_6460.slc.par 22202_6460.rc 22202_6460.autof 2.5 - 4096 - 1024 1
 
     print "########### running az_proc... ###########  "
-    SLC = n+"_"+fr+".slc"
+    SLC = n+"_"+fr+"_"+pol+".slc"
     az_patch = "16284"
     SLC_format = "0"
     cal_fact = "0"
@@ -167,7 +174,7 @@ def doit(leader, ceos_raw):
     LR = "-1"
     data_type = "0"
     hdrsz = "-"
-    rasf = n+"_"+fr+".bmp"
+    rasf = n+"_"+fr+"_"+pol+".bmp"
     command = ["rasSLC", SLC, width, start, nlines, pixavr, pixavaz, scale, exp, LR, data_type, hdrsz, rasf]
     try:
         subprocess.check_call(command)
@@ -178,13 +185,35 @@ def doit(leader, ceos_raw):
 
 if __name__ == '__main__':
     import optparse
-    usage = "usage: %prog [options] LED-file IMG-file"
+    usage = "usage: %prog [options] [LED-file IMG-file] [directory]"
     
     optp = optparse.OptionParser(usage=usage)
     
+    optp.add_option(
+        '-d', '--directory',
+        dest='directory',
+        action='store',
+        help="run on this directory"
+    )
+    
     (opts, args) = optp.parse_args()
     
-    if len(args) >= 2:
+    if opts.directory:
+        #cd into the directory, nab the LED and IMG, run program, then cd out
+        os.chdir(opts.directory)
+        print os.getcwd()
+        LEDfile = ""
+        IMGfile = ""
+        for item in os.listdir("."):
+            if "LED" in item:
+                LEDfile = item
+        #now run gamma for each IMG- it comes across
+        for item in os.listdir("."):
+            if "IMG-" in item:
+                IMGfile = item
+                doit(LEDfile, IMGfile)
+        
+    elif len(args) >= 2:
         doit(args[0], args[1])
         
     else:
