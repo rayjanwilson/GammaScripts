@@ -193,13 +193,13 @@ if __name__ == '__main__':
         '-d', '--directory',
         dest='directory',
         action='store',
-        help="run on this directory"
+        help="run gamma for every IMG in this directory"
     )
     
     (opts, args) = optp.parse_args()
     
     if opts.directory:
-        #cd into the directory, nab the LED and IMG, run program, then cd out
+        #cd into the directory, nab the LED and all IMG files, run program for each IMG it finds
         os.chdir(opts.directory)
         print os.getcwd()
         LEDfile = ""
