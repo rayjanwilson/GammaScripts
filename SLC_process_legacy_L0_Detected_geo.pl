@@ -44,6 +44,8 @@ sub clean{
     `rm *.autof`;
     #clean az_proc output files
     `rm *.slc`;
+    #clean antenna_pattern links
+    `rm *.gain`;
     print "Ready to process\n";
 }
 
@@ -390,7 +392,20 @@ sub run_az_proc{
     print "\n";
     
     #link the antennae pattern file
-    `ln -s \$MSP_HOME/sensors/RSAT_S3_antenna.gain RSAT_S3_antenna.gain`;
+    if($info->{'plat'} eq 'R1'){
+        print "\nGenerating links to antenna patterns...\n";
+        my @antenna_patterns = `ls \$MSP_HOME/sensors/RSAT*`;
+        foreach my $antenna_pattern_location (@antenna_patterns){
+            chomp($antenna_pattern_location);
+            my $antenna_pattern;
+            if($antenna_pattern_location =~ /.*\/(.*\.gain)/){
+                $antenna_pattern = $1;
+            }
+            #print "$antenna_pattern\n";
+            `ln -s \$MSP_HOME/sensors/$antenna_pattern $antenna_pattern`;
+        }
+    }
+    print "\nRunning az_proc...\n";
     `az_proc $SAR_par $PROC_par $rc_data $SLC $az_patch $SLC_format $cal_fact $SLC_type $kaiser`;
 }
 
@@ -427,7 +442,7 @@ $info = ripLeader($filename);
 
 gamma($info);
 
-print "directory contents...\n" if($debug);
+print "\n\ndirectory contents...\n" if($debug);
 print `ls` if($debug);
 
 __END__
