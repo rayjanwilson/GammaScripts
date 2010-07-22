@@ -90,18 +90,29 @@ sub check_files{
 sub ripLeader{
     my $leader = $_[0];
     my $info = {};
-    my ($plat, $rev, $mode, $proc_level, $frame);
-    #R1_52109_ST3_L0_F297.000.ldr
-    if($leader =~ /(.*)\.ldr/){
-        $info->{'granule'} = $1;
-    }
+    #production: J1_24495_STD_F0468_01.3744.ldr
+    #scaleup: R1_52109_ST3_L0_F297.000.ldr
     if($leader =~ /(..)_(\d{5})_(...)_(L0)_(\w\d{3})\.(\d{3})\.ldr/){
+        #scaleup leader file
         $info->{'plat'} = $1;
         $info->{'rev'} = $2;
         $info->{'mode'} = $3;
         $info->{'proc_level'} = $4;
         $info->{'frame'} = $5;
+        if($leader =~ /(.*)\.ldr/){
+            $info->{'granule'} = $1;
+        }
         print "plat: $info->{'plat'}\trev: $info->{'rev'}\tmode: $info->{'mode'}\tproc_level: $info->{'proc_level'}\tframe: $info->{'frame'}\n" if($debug);
+    }elsif($leader =~ /(..)_(\d{5})_(...)_(\w\d*)_(.*)\.(\d*)\.ldr/){
+        #production leader file
+        $info->{'plat'} = $1;
+        $info->{'rev'} = $2;
+        $info->{'mode'} = $3;
+        $info->{'frame'} = $4;
+        if($leader =~ /(.*)\.ldr/){
+            $info->{'granule'} = $1;
+        }
+        print "plat: $info->{'plat'}\trev: $info->{'rev'}\tmode: $info->{'mode'}\tframe: $info->{'frame'}\n" if($debug);
     }else{
         die "this leader file is not recognized at this time:\n$leader";
     }
