@@ -175,6 +175,27 @@ sub run_ERS_proc_ASF_2000{
     `ERS_proc_ASF_2000 $CEOS_ldr $PROC_par`;
 }
 
+sub run_JERS_proc{
+    # SAR processing  parameter input for JERS-1 data from NASDA + ASF ***
+    
+    #usage: JERS_proc <CEOS_SAR_ldr> <PROC_par>
+
+    #input parameters:
+    #  CEOS_SAR_ldr  (input) CEOS SAR leader file for JERS-1
+    #  PROC_par      (output) MSP processing parameter file
+    my $info = $_[0];
+    my $granule = $info->{'granule'};
+    my $CEOS_ldr = "$granule.ldr";
+    my $PROC_par = "$granule.slc.par";
+    
+    print "JERS_proc...\n";
+    print "CEOS_ldr:\t $CEOS_ldr\n" if($debug);
+    print "PROC_par:\t $PROC_par\n" if($debug);
+    print "\n";
+    
+    `JERS_proc $CEOS_ldr $PROC_par`;
+}
+
 sub run_ERS_fix{
     # ERS raw data missing line detection and range gate alignment
     # ers_fix ESA/ESRIN ers%s%_esa.par p%n%_%f%.slc.par 1 E%s%_%n%_STD_F0%f%_01.2183.raw %n%_%f%.fix
@@ -209,7 +230,37 @@ sub run_ERS_fix{
     print "output_file:\t $output_file\n" if($debug);
     print "\n";
     
-    `ers_fix $ERS_PAF $SAR_par $PROC_par $cc_flag $raw_data_file $output_file`;
+    `ERS_fix $ERS_PAF $SAR_par $PROC_par $cc_flag $raw_data_file $output_file`;
+}
+
+sub run_JERS_fix{
+    # Concatenate and range align NASDA JERS raw data files  ***
+
+    #usage: JERS_fix <SAR_par> <PROC_par> <1. raw_data> <2. raw_data> <...> <raw_out>
+
+    #input parameters:
+    #  SAR_par      (input) JERS SAR sensor parameter file
+    #  PROC_par     (input/output) MSP processing parameter file (modified or created)
+    #  1. raw_data  (input) 1. raw data file
+    #  2. raw_data  (input) 2. raw data file
+    #  ...          further raw data files (all listed files will be concatenated)
+    #  raw_out      (output) raw output data file
+    
+    my $info = $_[0];
+    my $granule = $info->{'granule'};
+    my $SAR_par = "$granule.par";
+    my $PROC_par = "$granule.slc.par";
+    my $raw_data_file = "$granule.raw";
+    my $output_file = "$granule.fix";
+    
+    print "JERS_fix...\n";
+    print "SAR_par:\t $SAR_par\n" if($debug);
+    print "PROC_par:\t $PROC_par\n" if($debug);
+    print "raw_data_file:\t $raw_data_file\n" if($debug);
+    print "output_file:\t $output_file\n" if($debug);
+    print "\n";
+    
+    `JERS_fix $SAR_par $PROC_par $raw_data_file $output_file`;
 }
 
 sub run_PRC_proc{
@@ -639,7 +690,7 @@ sub gamma{
     my $info = $_[0];
     print "Running gamma\n";
     clean() if($clean);
-    if ($info->{'plat'} eq 'R1'){
+    if($info->{'plat'} eq 'R1'){
         run_RSAT_raw($info);
         run_dop_mlcc($info);
         run_doppler($info);
@@ -651,6 +702,18 @@ sub gamma{
     }elsif($info->{'plat'} eq 'E1' or $info->{'plat'} eq 'E2'){
         run_ERS_proc_ASF_2000($info);
         run_ERS_fix($info);
+        run_PRC_proc($info);
+        run_dop_ambig($info);
+        run_azsp_IQ($info);
+        run_doppler($info);
+        run_rspec_IQ($info);
+        run_pre_rc($info);
+        run_autof($info);
+        run_autof($info);
+        run_az_proc($info);
+    }elsif($info->{'plat'} eq 'J1'){
+        run_JERS_proc($info);
+        run_JERS_fix($info);
         run_PRC_proc($info);
         run_dop_ambig($info);
         run_azsp_IQ($info);
