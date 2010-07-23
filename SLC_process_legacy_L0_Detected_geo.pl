@@ -152,6 +152,128 @@ sub run_RSAT_raw{
     `RSAT_raw $CEOS_ldr $SAR_par $PROC_par $raw_data_file $raw_out`;
 }
 
+sub run_ERS_proc_ASF_2000{
+    # ERS SAR processing parameters from ASF Level 0 (SKY) CEOS leader (2000)
+    # ERS_proc_ASF_2000 E%s%_%n%_STD_F0%f%_01.2183.ldr p%n%_%f%.slc.par
+
+    # usage: ./ERS_proc_ASF_2000 <CEOS_SAR_leader> <PROC_par>
+
+    # input parameters:
+    #   CEOS_SAR_leader  (input) CEOS SAR leader file (ASF Level 0 leader)
+    #   PROC_par         (output) MSP processing parameter file, (example p<orbit>.slc.par)
+    
+    my $info = $_[0];
+    my $granule = $info->{'granule'};
+    my $CEOS_ldr = "$granule.ldr";
+    my $PROC_par = "$granule.slc.par";
+    
+    print "ERS_proc_ASF_2000...\n";
+    print "CEOS_ldr:\t $CEOS_ldr\n" if($debug);
+    print "PROC_par:\t $PROC_par\n" if($debug);
+    print "\n";
+    
+    `ERS_proc_ASF_2000 $CEOS_ldr $PROC_par`;
+}
+
+sub run_ERS_fix{
+    # ERS raw data missing line detection and range gate alignment
+    # ers_fix ESA/ESRIN ers%s%_esa.par p%n%_%f%.slc.par 1 E%s%_%n%_STD_F0%f%_01.2183.raw %n%_%f%.fix
+
+    # usage: ERS_fix <ERS_PAF> <SAR_par> <PROC_par> <cc_flag> <ERS raw data file(s)> <output_file>
+
+    # input parameters:
+    #   ERS_PAF        ERS Processing and Archive Facility (PAF), valid inputs:
+    #                  ENVISAT ACRES CCRS COLUMBIA DPAF ESA/ESRIN NASDA EIC CRISP UK/QinetiQ
+    #   SAR_par        (input) MSP SAR sensor parameter file
+    #   PROC_par       (input) MSP processing parameter file
+    #   cc_flag        cross correlation detection of missing lines (default=0=OFF, 1=ON)
+    #   raw data files (input) list of raw data file name(s) to check and concatenate
+    #       IMPORTANT: for ERS_PAF=ENVISAT use cat_raw to concatenate!
+    #   output_file    (output) fixed raw data
+    
+    my $info = $_[0];
+    my $granule = $info->{'granule'};
+    my $ERS_PAF = "ESA/ESRIN";
+    my $SAR_par = "$granule.par";
+    my $PROC_par = "$granule.slc.par";
+    my $cc_flag = "1";
+    my $raw_data_file = "$granule.raw";
+    my $output_file = "$granule.fix";
+    
+    print "ERS_fix...\n";
+    print "ERS_PAF:\t $ERS_PAF\n" if($debug);
+    print "SAR_par:\t $SAR_par\n" if($debug);
+    print "PROC_par:\t $PROC_par\n" if($debug);
+    print "cc_flag:\t $cc_flag\n" if($debug);
+    print "raw_data_file:\t $raw_data_file\n" if($debug);
+    print "output_file:\t $output_file\n" if($debug);
+    print "\n";
+    
+    `ers_fix $ERS_PAF $SAR_par $PROC_par $cc_flag $raw_data_file $output_file`;
+}
+
+sub run_PRC_proc{
+    # State vectors  from ERS PRC orbit data for MSP processing
+    # PRC_proc p%n%_%f%.slc.par srev2 5
+
+    # usage: PRC_proc <PROC_par> <PRC> [nstate]
+
+    # input parameters: 
+    #   PROC_par  (input) MSP processing parameter file
+    #   PRC       PRC state vector file
+    #   nstate    number of state vectors (default=5, maximum=64)
+
+    my $info = $_[0];
+    my $granule = $info->{'granule'};
+    my $PROC_par = "$granule.slc.par";
+    my $PRC = "srev2";
+    my $nstate = "5";
+    
+    print "PRC_proc...\n";
+    print "PROC_par:\t $PROC_par\n" if($debug);
+    print "PRC:\t $PRC\n" if($debug);
+    print "nstate:\t $nstate\n" if($debug);
+    print "\n";
+    
+    `PRC_proc $PROC_par $PRC $nstate`;
+
+}
+
+sub run_dop_ambig{
+    # Doppler ambiguity estimation for IQ SAR raw data ***
+    # dop_ambig ers%s%_esa.par p%n%_%f%.slc.par E%s%_%n%_STD_F0%f%_01.2183.raw 2 0 dop_ambig.dat
+
+    # usage: dop_ambig <SAR_par> <PROC_par> <signal_data> [algorithm] [loff] [output_plot]
+
+    # input parameters: 
+    #  SAR_par      (input) MSP SAR sensor parameter file
+    #  PROC_par     (input) MSP processing parameter file
+    #  signal_data  (input) uncompressed raw SAR signal data (I/Q complex)
+    #  algorithm    algorithm selection:
+    #                 1: Multi-Look Cross Correlation (MLCC)
+    #                 2: Multi-Look Beat Frequency (MLBF) (default)
+    #  loff         number of lines offset (enter - for default: parameter file value)
+    #  output_plot  (output) plot file: correlation phase for MLCC, azimuth spectrum for MLBF
+    
+    my $info = $_[0];
+    my $granule = $info->{'granule'};
+    my $SAR_par = "$granule.par";
+    my $PROC_par = "$granule.slc.par";
+    my $signal_data = "$granule.raw";
+    my $algorithm = "2";
+    my $loff = "0";
+    my $output_plot = "dop_ambig.dat";
+    
+    print "dop_ambig...\n";
+    print "SAR_par:\t $SAR_par\n" if($debug);
+    print "PROC_par:\t $PROC_par\n" if($debug);
+    print "signal_data:\t $signal_data\n" if($debug);
+    print "algorithm:\t $algorithm\n" if($debug);
+    print "loff:\t $loff\n" if($debug);
+    print "output_plot:\t $output_plot\n" if($debug);
+    print "\n";
+}
+
 sub run_dop_mlcc{
     # Doppler ambiguity estimation for IQ SAR data MLCC algorithm
     #dop_mlcc rsat.par p%n%.slc.par %n%.fix %n%.mlcc
@@ -188,7 +310,8 @@ sub run_dop_mlcc{
 sub run_doppler{
     # Doppler centroid estimation across track for IQ SAR data  ***
     # doppler rsat.par p%n%.slc.par %n%.fix %n%.dop - 24
-
+    # doppler ers%s%_esa.par p%n%_%f%.slc.par %n%_%f%.fix %n%_%f%.dop
+    
     # usage: doppler <SAR_par> <PROC_par> <signal_data> <doppler> [loff] [nsub] [ambig_flag] [namb]
 
     # input parameters:
@@ -211,7 +334,12 @@ sub run_doppler{
     my $signal_data = "$granule.fix";
     my $doppler = "$granule.dop";
     my $loff = "-";
-    my $nsub = "24";
+    my $nsub;
+    if($info->{'plat'} eq 'R1'){
+        $nsub = "24";
+    }else{
+        $nsub = "12";
+    }
     
     print "doppler...\n";
     print "SAR_par:\t $SAR_par\n" if($debug);
@@ -228,7 +356,8 @@ sub run_doppler{
 sub run_rspec_IQ{
     # *** Range spectrum estimation for IQ raw SAR data ***
     #rspec_iq rsat.par p%n%.slc.par %n%.fix %n%.rspec
-
+    #rspec_iq ers%s%_esa.par p%n%_%f%.slc.par %n%_%f%.fix %n%_%f%.rspec
+    
     # usage: rspec_iq <SAR_par> <PROC_par> <signal_data> <range_spec> [loff] [nlspec] [nrfft]
 
     # input parameters:
@@ -294,10 +423,49 @@ sub run_pre_rc_RSAT{
     `pre_rc_RSAT $SAR_par $PROC_par $signal_data $rc_data`;
 }
 
+sub run_pre_rc{
+    # SAR data prefilter and range compression for complex IQ data with RFI suppression ***
+    # pre_rc ers%s%_esa.par p%n%_%f%.slc.par %n%_%f%.fix %n%_%f%.rc
+
+    #usage: pre_rc <SAR_par> <PROC_par> <signal_data> <rc_data> [prefilt_dec] [loff] [nl] [nr_samp] [kaiser] [filt_lm] [nr_ext] [fr_ext] [RFI_filt] [RFI_thres]
+
+    #input parameters:
+    #  SAR_par      (input) MSP SAR sensor parameter file
+    #  PROC_par     (input) MSP processing parameter file
+    #  signal_data  (input) uncompressed raw IQ SAR signal data
+    #  rc_data      (output) range compressed data filename
+    #  prefilt_dec  prefilter decimation factor (enter - for default from PROC_par)
+    #  loff         number of lines offset from start of file (enter - for default from PROC_par)
+    #  nl           number of lines to range compress (enter - for default from PROC_par)
+    #  nr_samp      number of range samples (enter - for default from PROC_par)
+    #  kaiser       range chirp Kaiser window parameter beta (default: 2.120)
+    #  filt_lm      filter length multiplier, FIR length = FIR_lm * prefilt_dec + 1 (default=8)
+    #  nr_ext       near range swath extension in samples (enter - for default from PROC_par)
+    #  fr_ext       far range swath extension in samples (enter - for default from PROC_par)
+    #  RFI_filt     RFI suppression filtering:
+    #                 0:OFF (default)
+    #                 1:ON
+    #  RFI_thres    RFI detection threshold, nominal range 1.1-->1.5 (default= 1.400)
+
+    my $info = $_[0];
+    my $granule = $info->{'granule'};
+    my $SAR_par = "$granule.par";
+    my $PROC_par = "$granule.slc.par";
+    my $signal_data = "$granule.fix";
+    my $rc_data = "$granule.rc";
+    
+    print "pre_rc...\n";
+    print "SAR_par:\t $SAR_par\n" if($debug);
+    print "PROC_par:\t $PROC_par\n" if($debug);
+    print "signal_data:\t $signal_data\n" if($debug);
+    print "rc_data:\t $rc_data\n" if($debug);    
+    print "\n";
+}
+
 sub run_autof{
     # Autofocus for range/Doppler processing ***
     #autof rsat.par p%n%.slc.par %n%.rc %n%.autof 1 1 2048 0 2048
-
+    #autof ers%s%_esa.par p%n%_%f%.slc.par %n%_%f%.rc %n%_%f%.autof 2.0
     # usage: autof <SAR_par> <PROC_par> <rc_data> <autofocus> [SNR_min] [prefilter] [auto_az] [az_offset] [auto_bins] [dop_ambig]
 
     # input parameters:
@@ -320,30 +488,47 @@ sub run_autof{
     my $PROC_par = "$granule.slc.par";
     my $rc_data = "$granule.rc";
     my $autofocus = "$granule.autof";
-    my $SNR_min = "1";
-    my $prefilter = "1";
-    my $auto_az = "2048";
-    my $az_offset = "0";
-    my $auto_bins = "2048";
     
-    print "autof...\n";
-    print "SAR_par:\t $SAR_par\n" if($debug);
-    print "PROC_par:\t $PROC_par\n" if($debug);
-    print "rc_data:\t $rc_data\n" if($debug);
-    print "autofocus:\t $autofocus\n" if($debug);
-    print "SNR_min:\t $SNR_min\n" if($debug);
-    print "prefilter:\t $prefilter\n" if($debug);
-    print "az_offset:\t $az_offset\n" if($debug);
-    print "auto_bins:\t $auto_bins\n" if($debug);    
-    print "\n";
+    if($info->{'plat'} eq 'R1'){
+        my $SNR_min = "1";
+        my $prefilter = "1";
+        my $auto_az = "2048";
+        my $az_offset = "0";
+        my $auto_bins = "2048";
+        
+        print "autof...\n";
+        print "SAR_par:\t $SAR_par\n" if($debug);
+        print "PROC_par:\t $PROC_par\n" if($debug);
+        print "rc_data:\t $rc_data\n" if($debug);
+        print "autofocus:\t $autofocus\n" if($debug);
+        print "SNR_min:\t $SNR_min\n" if($debug);
+        print "prefilter:\t $prefilter\n" if($debug);
+        print "az_offset:\t $az_offset\n" if($debug);
+        print "auto_bins:\t $auto_bins\n" if($debug);    
+        print "\n";
     
-    `autof $SAR_par $PROC_par $rc_data $autofocus $SNR_min $prefilter $auto_az $az_offset $auto_bins`;
+        `autof $SAR_par $PROC_par $rc_data $autofocus $SNR_min $prefilter $auto_az $az_offset $auto_bins`;
+    }else{
+        my $SNR_min = "2.0";
+        
+        print "autof...\n";
+        print "SAR_par:\t $SAR_par\n" if($debug);
+        print "PROC_par:\t $PROC_par\n" if($debug);
+        print "rc_data:\t $rc_data\n" if($debug);
+        print "autofocus:\t $autofocus\n" if($debug);
+        print "SNR_min:\t $SNR_min\n" if($debug);
+        print "\n";
+        
+        `autof $SAR_par $PROC_par $rc_data $autofocus $SNR_min`;
+    }
+    
+    
 }
 
 sub run_az_proc{
     # SAR range + Doppler azimuth processor (2D-Doppler variation) ***
     # az_proc rsat.par p%n%.slc.par %n%.rc %n%.slc 8192 0 0 0 2.12
-
+    # az_proc ers%s%_esa.par p%n%_%f%.slc.par %n%_%f%.rc %n%_%f%.slc 4096 0 - - - -
     # usage: az_proc <SAR_par> <PROC_par> <rc_data> <SLC> [az_patch] [SLC_format] [cal_fact] [SLC_type] [kaiser] [npatch]
 
     # input parameters:
@@ -369,17 +554,35 @@ sub run_az_proc{
     
     my $info = $_[0];
     my $granule = $info->{'granule'};
+    
+    #link the antennae pattern file
+    print "\nGenerating links to antenna patterns...\n";
+    my @antenna_patterns = `ls \$MSP_HOME/sensors/`;
+    foreach my $antenna_pattern (@antenna_patterns){
+        chomp($antenna_pattern);
+        `ln -s \$MSP_HOME/sensors/$antenna_pattern $antenna_pattern`;
+    }
+    
     my $SAR_par = "$granule.par";
     my $PROC_par = "$granule.slc.par";
     my $rc_data = "$granule.rc";
     my $SLC = "$granule.slc";
-    my $az_patch = "8192";
-    my $SLC_format = "0";
-    my $cal_fact = "0";
-    my $SLC_type = "0";
-    my $kaiser = "2.12";
+    my ($az_patch, $SLC_format, $cal_fact, $SLC_type, $kaiser);
     
-    print "autof...\n";
+    if($info->{'plat'} eq 'R1'){
+        $az_patch = "8192";
+        $SLC_format = "0";
+        $cal_fact = "0";
+        $SLC_type = "0";
+        $kaiser = "2.12";
+    }else{
+        $az_patch = "4096";
+        $SLC_format = "-";
+        $cal_fact = "-";
+        $SLC_type = "-";
+        $kaiser = "-";
+    }
+    print "az_proc...\n";
     print "SAR_par:\t $SAR_par\n" if($debug);
     print "PROC_par:\t $PROC_par\n" if($debug);
     print "rc_data:\t $rc_data\n" if($debug);
@@ -391,36 +594,76 @@ sub run_az_proc{
     print "kaiser:\t $kaiser\n" if($debug);
     print "\n";
     
-    #link the antennae pattern file
-    if($info->{'plat'} eq 'R1'){
-        print "\nGenerating links to antenna patterns...\n";
-        my @antenna_patterns = `ls \$MSP_HOME/sensors/RSAT*`;
-        foreach my $antenna_pattern_location (@antenna_patterns){
-            chomp($antenna_pattern_location);
-            my $antenna_pattern;
-            if($antenna_pattern_location =~ /.*\/(.*\.gain)/){
-                $antenna_pattern = $1;
-            }
-            #print "$antenna_pattern\n";
-            `ln -s \$MSP_HOME/sensors/$antenna_pattern $antenna_pattern`;
-        }
-    }
     print "\nRunning az_proc...\n";
     `az_proc $SAR_par $PROC_par $rc_data $SLC $az_patch $SLC_format $cal_fact $SLC_type $kaiser`;
+}
+
+sub run_azsp_IQ{
+    # azimuth spectrum and Doppler centroid for IQ raw SAR data ***
+    # azsp_IQ ers%s%_esa.par p%n%_%f%.slc.par %n%_%f%.fix %n%_%f%.azsp
+
+    #usage: azsp_IQ <SAR_par> <PROC_par> <signal_data> <spectrum> [loff] [roff] [nsub] [ambig_flg] [namb]
+
+    #input parameters:
+    #  SAR_par      (input) SAR sensor parameter file
+    #  PROC_par     (input) MSP processing parameter file 
+    #  signal_data  (input) input raw I/Q format SAR data
+    #  spectrum     (output) azimuth spectrum (text format for plotting)
+    #  loff         number of lines offset to start of estimation window (default=0)
+    #  roff         range samples offset to center of estimation window (enter - for default=center_swath)
+    #  nsub         number of azimuth subapertures for spectrum estimation (default = 12)
+    #  ambig_flg    Doppler ambiguity resolution mode
+    #                 0 = add multiples of PRF specified by the namb command line parameter
+    #                 1 = use unambiguous Doppler centroid estimate from the PROC_par file (default)
+    #  namb         number of multiples of the PRF to add to the ambiguous Doppler estimate (default=0)
+    
+    my $info = $_[0];
+    my $granule = $info->{'granule'};
+    my $SAR_par = "$granule.par";
+    my $PROC_par = "$granule.slc.par";
+    my $signal_data = "$granule.fix";
+    my $spectrum = "$granule.azsp";
+    
+    print "azsp_IQ...\n";
+    print "SAR_par:\t $SAR_par\n" if($debug);
+    print "PROC_par:\t $PROC_par\n" if($debug);
+    print "signal_data:\t $signal_data\n" if($debug);
+    print "spectrum:\t $spectrum\n" if($debug);
+    print "\n";
+    
+    `azsp_IQ $SAR_par $PROC_par $signal_data $spectrum`;
+
 }
 
 sub gamma{
     my $info = $_[0];
     print "Running gamma\n";
     clean() if($clean);
-    run_RSAT_raw($info);
-    run_dop_mlcc($info);
-    run_doppler($info);
-    run_rspec_IQ($info);
-    run_pre_rc_RSAT($info);
-    run_autof($info);
-    run_autof($info); #yes we do it twice =P maybe franz had a typo =P
-    run_az_proc($info);
+    if ($info->{'plat'} eq 'R1'){
+        run_RSAT_raw($info);
+        run_dop_mlcc($info);
+        run_doppler($info);
+        run_rspec_IQ($info);
+        run_pre_rc_RSAT($info);
+        run_autof($info);
+        run_autof($info); #yes we do it twice =P maybe franz had a typo =P
+        run_az_proc($info);
+    }elsif($info->{'plat'} eq 'E1' or $info->{'plat'} eq 'E2'){
+        run_ERS_proc_ASF_2000($info);
+        run_ERS_fix($info);
+        run_PRC_proc($info);
+        run_dop_ambig($info);
+        run_azsp_IQ($info);
+        run_doppler($info);
+        run_rspec_IQ($info);
+        run_pre_rc($info);
+        run_autof($info);
+        run_autof($info);
+        run_az_proc($info);
+    }else{
+        die "$info->{'plat'} platform is not supported at this time\n";
+    }
+    
 }
     
 print "filename:\t$filename\n" if($debug);
@@ -475,7 +718,7 @@ Prints additional info while processing
 
 =head1 DESCRIPTION
 
-B<This program> takes a legacy L0 product from ASF, uses Gamma to process it to L1.1,
+B<SLC_process_legacy_L0_Detected_geo.pl> takes a legacy L0 product from ASF, uses Gamma to process it to L1.1,
 and then uses Mapready to process it to Detected Georeferenced
 
 =cut
