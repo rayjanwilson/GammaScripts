@@ -89,6 +89,16 @@ sub check_files{
     }
 }
 
+sub make_links{
+    #link the antennae pattern file
+    print "\nGenerating links to antenna patterns...\n";
+    my @antenna_patterns = `ls \$MSP_HOME/sensors/`;
+    foreach my $antenna_pattern (@antenna_patterns){
+        chomp($antenna_pattern);
+        `ln -s \$MSP_HOME/sensors/$antenna_pattern $antenna_pattern`;
+    }
+}
+
 sub ripLeader{
     my $leader = $_[0];
     my $info = {};
@@ -118,6 +128,17 @@ sub ripLeader{
     }else{
         die "this leader file is not recognized at this time:\n$leader";
     }
+    
+    if($info->{'plat'} eq 'E1'){
+        $info->{'SAR_par'} = "ERS1_ESA.par";
+    }elsif($info->{'plat'} eq 'E2'){
+        $info->{'SAR_par'} = "ERS2_ESA.par";
+    }elsif($info->{'plat'} eq 'J1'){
+        $info->{'SAR_par'} = "JERS-1.par";
+    }else{
+        $info->{'SAR_par'} = "$info->{'granule'}.par";
+    }
+    
     return $info;
 }
 
@@ -136,7 +157,7 @@ sub run_RSAT_raw{
     my $info = $_[0];
     my $granule = $info->{'granule'};
     my $CEOS_ldr = "$granule.ldr";
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";
     my $PROC_par = "$granule.slc.par";
     my $raw_data_file = "$granule.raw";
     my $raw_out = "$granule.fix";
@@ -172,7 +193,14 @@ sub run_ERS_proc_ASF_2000{
     print "PROC_par:\t $PROC_par\n" if($debug);
     print "\n";
     
-    `ERS_proc_ASF_2000 $CEOS_ldr $PROC_par`;
+    my $cmd = "ERS_proc_ASF_2000 $CEOS_ldr $PROC_par";
+    print "$cmd";
+    eval {
+        system($cmd);
+    }; if ($@) {
+        die "ERROR: $!\n";    
+    }
+    
 }
 
 sub run_JERS_proc{
@@ -215,7 +243,7 @@ sub run_ERS_fix{
     my $info = $_[0];
     my $granule = $info->{'granule'};
     my $ERS_PAF = "ESA/ESRIN";
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";
     my $PROC_par = "$granule.slc.par";
     my $cc_flag = "1";
     my $raw_data_file = "$granule.raw";
@@ -230,7 +258,13 @@ sub run_ERS_fix{
     print "output_file:\t $output_file\n" if($debug);
     print "\n";
     
-    `ERS_fix $ERS_PAF $SAR_par $PROC_par $cc_flag $raw_data_file $output_file`;
+    my $cmd = "ERS_fix $ERS_PAF $SAR_par $PROC_par $cc_flag $raw_data_file $output_file";
+    print "$cmd";
+    eval {
+        system($cmd);
+    }; if ($@) {
+        die "ERROR: $!\n";    
+    }
 }
 
 sub run_JERS_fix{
@@ -248,7 +282,7 @@ sub run_JERS_fix{
     
     my $info = $_[0];
     my $granule = $info->{'granule'};
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";
     my $PROC_par = "$granule.slc.par";
     my $raw_data_file = "$granule.raw";
     my $output_file = "$granule.fix";
@@ -286,8 +320,13 @@ sub run_PRC_proc{
     print "nstate:\t $nstate\n" if($debug);
     print "\n";
     
-    `PRC_proc $PROC_par $PRC $nstate`;
-
+    my $cmd = "PRC_proc $PROC_par $PRC $nstate";
+    print "$cmd";
+    eval {
+        system($cmd);
+    }; if ($@) {
+        die "ERROR: $!\n";    
+    }
 }
 
 sub run_dop_ambig{
@@ -308,7 +347,7 @@ sub run_dop_ambig{
     
     my $info = $_[0];
     my $granule = $info->{'granule'};
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";    
     my $PROC_par = "$granule.slc.par";
     my $signal_data = "$granule.raw";
     my $algorithm = "2";
@@ -323,6 +362,14 @@ sub run_dop_ambig{
     print "loff:\t $loff\n" if($debug);
     print "output_plot:\t $output_plot\n" if($debug);
     print "\n";
+    
+    my $cmd = "dop_ambig $SAR_par $PROC_par $signal_data $algorithm $loff $output_plot";
+    print "$cmd";
+    eval {
+        system($cmd);
+    }; if ($@) {
+        die "ERROR: $!\n";    
+    }
 }
 
 sub run_dop_mlcc{
@@ -341,7 +388,7 @@ sub run_dop_mlcc{
     
     my $info = $_[0];
     my $granule = $info->{'granule'};
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";
     my $PROC_par = "$granule.slc.par";
     my $signal_data = "$granule.fix";
     my $output_plot = "$granule.mlcc";
@@ -355,7 +402,13 @@ sub run_dop_mlcc{
     print "output_plot:\t $output_plot\n" if($debug);
     print "\n";
     
-    `dop_mlcc $SAR_par $PROC_par $signal_data $output_plot`;
+    my $cmd = "dop_mlcc $SAR_par $PROC_par $signal_data $output_plot";
+    print "$cmd";
+    eval {
+        system($cmd);
+    }; if ($@) {
+        die "ERROR: $!\n";    
+    }
 }
 
 sub run_doppler{
@@ -380,7 +433,7 @@ sub run_doppler{
     
     my $info = $_[0];
     my $granule = $info->{'granule'};
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";
     my $PROC_par = "$granule.slc.par";
     my $signal_data = "$granule.fix";
     my $doppler = "$granule.dop";
@@ -401,7 +454,13 @@ sub run_doppler{
     print "nsub:\t $nsub\n" if($debug);
     print "\n";
     
-    `doppler $SAR_par $PROC_par $signal_data $doppler $loff $nsub`;
+    my $cmd = "doppler $SAR_par $PROC_par $signal_data $doppler $loff $nsub";
+    print "$cmd";
+    eval {
+        system($cmd);
+    }; if ($@) {
+        die "ERROR: $!\n";    
+    }
 }
 
 sub run_rspec_IQ{
@@ -422,7 +481,7 @@ sub run_rspec_IQ{
     
     my $info = $_[0];
     my $granule = $info->{'granule'};
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";
     my $PROC_par = "$granule.slc.par";
     my $signal_data = "$granule.fix";
     my $range_spec = "$granule.rspec";    
@@ -434,7 +493,13 @@ sub run_rspec_IQ{
     print "range_spec:\t $range_spec\n" if($debug);    
     print "\n";
     
-    `rspec_IQ $SAR_par $PROC_par $signal_data $range_spec`;
+    my $cmd = "rspec_IQ $SAR_par $PROC_par $signal_data $range_spec";
+    print "$cmd";
+    eval {
+        system($cmd);
+    }; if ($@) {
+        die "ERROR: $!\n";    
+    }
 }
 
 sub run_pre_rc_RSAT{
@@ -459,7 +524,7 @@ sub run_pre_rc_RSAT{
     
     my $info = $_[0];
     my $granule = $info->{'granule'};
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";
     my $PROC_par = "$granule.slc.par";
     my $signal_data = "$granule.fix";
     my $rc_data = "$granule.rc";
@@ -471,7 +536,13 @@ sub run_pre_rc_RSAT{
     print "rc_data:\t $rc_data\n" if($debug);    
     print "\n";
     
-    `pre_rc_RSAT $SAR_par $PROC_par $signal_data $rc_data`;
+    my $cmd = "pre_rc_RSAT $SAR_par $PROC_par $signal_data $rc_data";
+    print "$cmd";
+    eval {
+        system($cmd);
+    }; if ($@) {
+        die "ERROR: $!\n";    
+    }
 }
 
 sub run_pre_rc{
@@ -500,7 +571,7 @@ sub run_pre_rc{
 
     my $info = $_[0];
     my $granule = $info->{'granule'};
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";
     my $PROC_par = "$granule.slc.par";
     my $signal_data = "$granule.fix";
     my $rc_data = "$granule.rc";
@@ -511,6 +582,14 @@ sub run_pre_rc{
     print "signal_data:\t $signal_data\n" if($debug);
     print "rc_data:\t $rc_data\n" if($debug);    
     print "\n";
+    
+    my $cmd = "pre_rc $SAR_par $PROC_par $signal_data $rc_data";
+    print "$cmd";
+    eval {
+        system($cmd);
+    }; if ($@) {
+        die "ERROR: $!\n";    
+    }
 }
 
 sub run_autof{
@@ -535,7 +614,7 @@ sub run_autof{
     
     my $info = $_[0];
     my $granule = $info->{'granule'};
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";
     my $PROC_par = "$granule.slc.par";
     my $rc_data = "$granule.rc";
     my $autofocus = "$granule.autof";
@@ -557,8 +636,14 @@ sub run_autof{
         print "az_offset:\t $az_offset\n" if($debug);
         print "auto_bins:\t $auto_bins\n" if($debug);    
         print "\n";
-    
-        `autof $SAR_par $PROC_par $rc_data $autofocus $SNR_min $prefilter $auto_az $az_offset $auto_bins`;
+        
+        my $cmd = "autof $SAR_par $PROC_par $rc_data $autofocus $SNR_min $prefilter $auto_az $az_offset $auto_bins";
+        print "$cmd";
+        eval {
+            system($cmd);
+        }; if ($@) {
+            die "ERROR: $!\n";    
+        }
     }else{
         my $SNR_min = "2.0";
         
@@ -570,7 +655,13 @@ sub run_autof{
         print "SNR_min:\t $SNR_min\n" if($debug);
         print "\n";
         
-        `autof $SAR_par $PROC_par $rc_data $autofocus $SNR_min`;
+        my $cmd = "autof $SAR_par $PROC_par $rc_data $autofocus $SNR_min";
+        print "$cmd";
+        eval {
+            system($cmd);
+        }; if ($@) {
+            die "ERROR: $!\n";    
+        }
     }
     
     
@@ -606,15 +697,7 @@ sub run_az_proc{
     my $info = $_[0];
     my $granule = $info->{'granule'};
     
-    #link the antennae pattern file
-    print "\nGenerating links to antenna patterns...\n";
-    my @antenna_patterns = `ls \$MSP_HOME/sensors/`;
-    foreach my $antenna_pattern (@antenna_patterns){
-        chomp($antenna_pattern);
-        `ln -s \$MSP_HOME/sensors/$antenna_pattern $antenna_pattern`;
-    }
-    
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";
     my $PROC_par = "$granule.slc.par";
     my $rc_data = "$granule.rc";
     my $SLC = "$granule.slc";
@@ -645,8 +728,13 @@ sub run_az_proc{
     print "kaiser:\t $kaiser\n" if($debug);
     print "\n";
     
-    print "\nRunning az_proc...\n";
-    `az_proc $SAR_par $PROC_par $rc_data $SLC $az_patch $SLC_format $cal_fact $SLC_type $kaiser`;
+    my $cmd = "az_proc $SAR_par $PROC_par $rc_data $SLC $az_patch $SLC_format $cal_fact $SLC_type $kaiser";
+    print "$cmd";
+    eval {
+        system($cmd);
+    }; if ($@) {
+        die "ERROR: $!\n";    
+    }
 }
 
 sub run_azsp_IQ{
@@ -670,7 +758,7 @@ sub run_azsp_IQ{
     
     my $info = $_[0];
     my $granule = $info->{'granule'};
-    my $SAR_par = "$granule.par";
+    my $SAR_par = "$info->{'SAR_par'}";
     my $PROC_par = "$granule.slc.par";
     my $signal_data = "$granule.fix";
     my $spectrum = "$granule.azsp";
@@ -682,14 +770,22 @@ sub run_azsp_IQ{
     print "spectrum:\t $spectrum\n" if($debug);
     print "\n";
     
-    `azsp_IQ $SAR_par $PROC_par $signal_data $spectrum`;
+    my $cmd = "azsp_IQ $SAR_par $PROC_par $signal_data $spectrum";
+    print "$cmd";
+    eval {
+        system($cmd);
+    }; if ($@) {
+        die "ERROR: $!\n";    
+    }
+}
+
+sub asf_gamma_import{
 
 }
 
 sub gamma{
     my $info = $_[0];
     print "Running gamma\n";
-    clean() if($clean);
     if($info->{'plat'} eq 'R1'){
         run_RSAT_raw($info);
         run_dop_mlcc($info);
@@ -728,7 +824,12 @@ sub gamma{
     }
     
 }
-    
+
+sub mapready{
+    asf_gamma_import();
+    #asf_mapready();
+}
+
 print "filename:\t$filename\n" if($debug);
 print "directory:\t$dir\n" if($debug);
 
@@ -742,6 +843,9 @@ if($filename =~ /\..*\.(.*)$/){
 
 print "continue processing...\n" if(check_files($dir));
 chdir($dir);
+
+clean() if($clean);
+make_links();
 
 my $info = {};
 $info = ripLeader($filename);
