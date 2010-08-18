@@ -18,11 +18,13 @@ use Pod::Usage;
 my $man = 0;
 my $help = 0;
 my $debug = 0;
+my $gamma = 0;
 
 ## Parse options and print usage if there is a syntax error,
 ## or if usage was explicitly requested.
 GetOptions('help|?|h' => \$help, 
         'man|m' => \$man,
+        'gamma|g' => \$gamma,
         'debug|d' => \$debug) or pod2usage(2);
 pod2usage(-verbose => 1) if $help;
 pod2usage(-verbose => 2) if $man;
@@ -65,21 +67,24 @@ if(-d $ARGV[0]){
         #my $whereami = `pwd`;
         #chomp($whereami);
         #print "\tim at:\t$whereami\n";
-        `$legacy_SLC_processor -c -d $ldrname` unless(-e $slc);
-        `metadata -save -meta $granule`;
-        #`convert2vector $granule.ldr $granule.kml`;
-        
-        
-        #range_pixels:                         4912   image output samples
-        my $width_grep = `grep -i range_pixels $granule.slc.par`;
-        chomp($width_grep);
-        my $width;
-        if ($width_grep =~ /range_pixels:\s*(\d*).*/){
-            $width = $1;
+        if($gamma){
+            `$legacy_SLC_processor -c -d $ldrname` unless(-e $slc);
+            
+            #range_pixels:                         4912   image output samples
+            my $width_grep = `grep -i range_pixels $granule.slc.par`;
+            chomp($width_grep);
+            my $width;
+            if ($width_grep =~ /range_pixels:\s*(\d*).*/){
+                $width = $1;
+            }
+            print "making image...\n";
+            `rasSLC $granule.slc $width 1 0 1 4 1.0 .5 1 1 0 $granule.bmp` unless (-e "$granule.bmp");            
+        }else{
+            my $cmd = "create_thumbs -log $granule.browse.log -browse -output-format jpg -scale 8 -L0 ceos -out-dir . -save-metadata $granule.raw";
+            system(cmd) unless (-e "$granule.jpg");
         }
-        print "making image...\n";
-        `rasSLC $granule.slc $width 1 0 1 4 1.0 .5 1 1 0 $granule.bmp` unless (-e "$granule.bmp");
-        `create_thumbs -log $granule.browse.log -browse -output-format jpg -scale 8 -L0 ceos -out-dir . $granule.raw` unless (-e "$granule.jpg");
+        #`metadata -save -meta $granule`;
+        #`convert2vector $granule.ldr $granule.kml`;
         
         my @meta = `ls *.meta`;
         chomp($meta[0]);
