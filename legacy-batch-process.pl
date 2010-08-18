@@ -68,7 +68,7 @@ if(-d $ARGV[0]){
         #chomp($whereami);
         #print "\tim at:\t$whereami\n";
         if($gamma){
-            `$legacy_SLC_processor -c -d $ldrname` unless(-e $slc);
+            `echo -e \\n | $legacy_SLC_processor -c -d $ldrname` unless(-e $slc);
             
             #range_pixels:                         4912   image output samples
             my $width_grep = `grep -i range_pixels $granule.slc.par`;
