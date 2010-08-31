@@ -22,15 +22,30 @@ def ripInfo(leader):
 
 def ripPolarization(img):
     p = re.compile('IMG-(\w\w)-*')
-    polarization = p.match(img).group(1)
-    return polarization
+    pol = p.match(img).group(1)
+    
+    print "pol ", pol
+    
+    return pol
 
 def doit(leader, ceos_raw):
     n, fr = ripInfo(leader)
     print "orbit: ", n
     print "frame: ", fr
     pol = ripPolarization(ceos_raw)
-    print pol
+    p = re.compile('(\w)(\w)')
+    tx_pol_alpha = p.match(pol).group(1)
+    rx_pol_alpha = p.match(pol).group(2)
+    tx_pol = "0"
+    rx_pol = "0"
+    if (tx_pol_alpha == 'V'):
+        tx_pol = "1"
+    elif (rx_pol_alpha == 'V'):
+        rx_pol = "1"
+    
+    print "tx_pol: ", tx_pol
+    print "rx_pol: ", rx_pol
+    
     # gamma needs these files to be "local" to the working directory. Don't ask why. 
     # instead of copying the files, we'll just make symbolic links'
     try:
@@ -48,14 +63,15 @@ def doit(leader, ceos_raw):
 
     print "########### running PALSAR_proc... ###########"
     CEOS_SAR_leader = leader
-    SAR_par = "palsar_"+fr+"_"+pol+".par"
-    PROC_par = "p"+n+"_"+fr+"_"+pol+".slc.par"
+    SAR_par = n+"_"+fr+"_"+pol+".par"
+    PROC_par = n+"_"+fr+"_"+pol+".slc.par"
     CEOS_raw_data = ceos_raw
     raw_out = n+"_"+fr+"_"+pol+".raw"
-    TX_POL = "0"
-    RX_POL = "0"
+    TX_POL = tx_pol
+    RX_POL = rx_pol
 
     command = ["PALSAR_proc", CEOS_SAR_leader, SAR_par, PROC_par, CEOS_raw_data, raw_out, TX_POL, RX_POL]
+    print command
     try:
         subprocess.check_call(command)
     except OSError, e:
@@ -126,6 +142,7 @@ def doit(leader, ceos_raw):
     RFI_filt = "-"
     RFI_thres = "-"
     command = ["pre_rc", SAR_par, PROC_par, signal_data, rc_data, prefilt_dec, loff, nl, nr_samp, kaiser, filt_lm, nr_ext, fr_ext, RFI_filt, RFI_thres]
+    #command = ["pre_rc_JERS", SAR_par, PROC_par, signal_data, rc_data, prefilt_dec, loff, nl, nr_samp, kaiser, filt_lm, nr_ext, fr_ext, RFI_filt, RFI_thres]
     try:
         subprocess.check_call(command)
     except OSError, e:
@@ -135,7 +152,8 @@ def doit(leader, ceos_raw):
 
     print "########### running autof... ###########  "
     autofocus = n+"_"+fr+"_"+pol+".autof"
-    SNR_min = "2.5"
+    #SNR_min = "2.5" #from franz's version'
+    SNR_min = "2.0" #used for the palsar offset problem. it's snr = 2.0495
     prefilter = "-"
     auto_az = "4096" #default = 2048
     az_offset = "-"
@@ -153,7 +171,8 @@ def doit(leader, ceos_raw):
     SLC = n+"_"+fr+"_"+pol+".slc"
     az_patch = "16284"
     SLC_format = "0"
-    cal_fact = "0"
+    #cal_fact = "0" #from franz's original script'
+    cal_fact = "-" #default from help
     SLC_type = "0"
     #missing npatch
     command = ["az_proc", SAR_par, PROC_par, rc_data, SLC, az_patch, SLC_format, cal_fact, SLC_type, kaiser]

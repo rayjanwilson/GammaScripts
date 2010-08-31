@@ -80,12 +80,12 @@ if(-d $ARGV[0]){
                 $width = $1;
             }
             print "making image...\n";
-            `rasSLC $granule.slc $width 1 0 1 4 1.0 .5 1 1 0 $granule.bmp` unless (-e "$granule.bmp");            
+            `rasSLC $granule.slc $width 1 0 1 4 1.0 .5 1 0 0 $granule.bmp` unless (-e "$granule.bmp");            
         }else{
-            my $command = "create_thumbs -log $granule.browse.log -browse -output-format jpg -scale 8 -L0 ceos -out-dir . -save-metadata $granule.raw";
+            my $command = "create_thumbs -log $granule.browse.log -browse -output-format jpg -scale 1 -L0 ceos -out-dir . -save-metadata $granule.raw";
             system($command) unless (-e "$granule.jpg");
         }
-        #`metadata -save -meta $granule`;
+        `metadata -save -meta $granule`;
         #`convert2vector $granule.ldr $granule.kml`;
         
         my @meta = `ls *.meta`;

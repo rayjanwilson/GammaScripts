@@ -710,8 +710,8 @@ sub run_az_proc{
         $SLC_type = "0";
         $kaiser = "2.12";
     }else{
-        $az_patch = "4096";
-        $SLC_format = "-";
+        $az_patch = "8192";
+        $SLC_format = "0";
         $cal_fact = "-";
         $SLC_type = "-";
         $kaiser = "-";
@@ -880,6 +880,10 @@ Prints the manual page and exits.
 =item B<-debug>
 
 Prints additional info while processing
+
+=item B<-clean>
+
+Cleans up previous gamma process files laying around before processing again
 
 =back
 

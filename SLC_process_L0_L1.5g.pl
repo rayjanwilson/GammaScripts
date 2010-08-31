@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
+use File::Basename;
 use Getopt::Long;
 
 my ($HEAD) = <<"#END";
@@ -18,6 +19,7 @@ my ($HEAD) = <<"#END";
 ###############################################################################
 #END
 
+my ($base, $dir) = fileparse($ARGV[0]);
 my ($help, $debug);
 GetOptions( "help|h"    => \$help,
             "debug|d" => \$debug) 
@@ -31,3 +33,10 @@ if($help) {
     exit;
 }
 
+sub ripLeader{
+    my $leader = $_[1];
+}
+
+
+print "basename:\t$base\n";
+print "directory:\t$dir\n";
