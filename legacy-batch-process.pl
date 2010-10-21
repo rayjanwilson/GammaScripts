@@ -22,7 +22,7 @@ my $gamma = 0;
 
 ## Parse options and print usage if there is a syntax error,
 ## or if usage was explicitly requested.
-GetOptions('help|?|h' => \$help, 
+GetOptions('help|?|h' => \$help,
         'man|m' => \$man,
         'gamma|g' => \$gamma,
         'debug|d' => \$debug) or pod2usage(2);
@@ -46,7 +46,7 @@ if(-d $ARGV[0]){
     $home_directory = `pwd`;
     chomp($home_directory);
     print "Process directory = $process_directory\n";
-    print 
+    print
     print "Home directory = $home_directory\n";
 
     my @ldrFiles = `find $process_directory -name "*.ldr"`;
@@ -71,7 +71,7 @@ if(-d $ARGV[0]){
             #qx(echo -e \\n | $legacy_SLC_processor -c -d $ldrname) unless(-e $slc);
             my $cmd = "~/dev/git/GammaScripts/run_legacy.sh $legacy_SLC_processor $ldrname";
             system($cmd);
-            
+
             #range_pixels:                         4912   image output samples
             my $width_grep = `grep -i range_pixels $granule.slc.par`;
             chomp($width_grep);
@@ -80,20 +80,21 @@ if(-d $ARGV[0]){
                 $width = $1;
             }
             print "making image...\n";
-            `rasSLC $granule.slc $width 1 0 1 4 1.0 .5 1 0 0 $granule.bmp` unless (-e "$granule.bmp");            
+            `rasSLC $granule.slc $width 1 0 1 4 1.0 .5 1 0 0 $granule.bmp` unless (-e "$granule.bmp");
         }else{
             my $command = "create_thumbs -log $granule.browse.log -browse -output-format jpg -scale 1 -L0 ceos -out-dir . -save-metadata $granule.raw";
             system($command) unless (-e "$granule.jpg");
         }
-        `metadata -save -meta $granule`;
+        #print "Generating .meta file...\n";
+        #`metadata -save -meta $granule`;
         #`convert2vector $granule.ldr $granule.kml`;
-        
-        my @meta = `ls *.meta`;
-        chomp($meta[0]);
-        my $info = getMetaData($meta[0], $granule);
-        $meta_hash->{$granule} = $info;
+
+        #my @meta = `ls *.meta`;
+        #chomp($meta[0]);
+        #my $info = getMetaData($meta[0], $granule);
+        #$meta_hash->{$granule} = $info;
         makeKML($granule);
-        
+
         chdir($home_directory) or die "Cant chdir to $home_directory $!";
         $i=$i+1;
     }
@@ -106,13 +107,13 @@ sub getMetaData{
     my $metadata_file = $_[0];
     chomp($metadata_file);
     my $granule = $_[1];
-    
+
     my $info = {};
     $info->{'granule'} = $granule;
     open(META, $metadata_file) or die "cant open $metadata_file\n $1\n";
     my @metadata = <META>;
     close(META);
-    
+
     foreach my $line (@metadata){
         if($line =~ /\s{4}dopRangeCen:\s(.*)\s*\#.*/){
             $info->{'dopRangeCen'} = $1;
@@ -132,7 +133,7 @@ sub getMetaData{
             $info->{'prf'} = $1;
         }
     }
-    
+
     return $info;
 }
 
