@@ -5,3 +5,8 @@ This code just calls the functions you would normally type by hand or whatever.
 Therefore this code is open source and GPL, etc.
 
 I tried to add some intelligence so we can automate some commonly performed tasks.
+
+Depends on:
+	- mapready from asf.alaska.edu
+	- python 2.6
+	- gamma v20090122
