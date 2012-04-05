@@ -10,3 +10,8 @@ Depends on:
 	- mapready from asf.alaska.edu
 	- python 2.6
 	- gamma v20090122
+
+Installation Instructions:
+	- just dump into you ~/bin directory
+	- ensure ~/bin is in your PATH env variable
+	- ensure they're executable
