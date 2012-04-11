@@ -49,12 +49,12 @@ def doit(leader, ceos_raw):
     # gamma needs these files to be "local" to the working directory. Don't ask why. 
     # instead of copying the files, we'll just make symbolic links'
     try:
-        subprocess.call("ln -s ${GAMMA_HOME}/MSP_v11.5/sensors/constant_antenna.gain constant_antenna.gain", shell=True)
+        subprocess.call("ln -s ${MSP_HOME}/sensors/constant_antenna.gain constant_antenna.gain", shell=True)
     except OSError, e:
         print >>sys.stderr, "Execution failed:", e
 
     try:
-        subprocess.call("ln -s ${GAMMA_HOME}/MSP_v11.5/sensors/palsar_ant_20061024.dat palsar_ant_20061024.dat", shell=True)
+        subprocess.call("ln -s ${MSP_HOME}/sensors/palsar_ant_20061024.dat palsar_ant_20061024.dat", shell=True)
     except OSError, e:
         print >>sys.stderr, "Execution failed:", e
 
